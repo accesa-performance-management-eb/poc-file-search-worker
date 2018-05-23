@@ -1,10 +1,6 @@
 package com.biroas.poc.file.search.api.model.file;
 
-
-import java.io.Serializable;
-
-public class File implements Serializable {
-    private static final long serialVersionUID = 7526472295622776147L;
+public class File {
 
     private String id;
     private String fileName;
@@ -68,5 +64,16 @@ public class File implements Serializable {
 
     public void setSystemName(String systemName) {
         this.systemName = systemName;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(" Id: ").append(this.id);
+        stringBuilder.append(", FileName: ").append(this.fileName);
+        stringBuilder.append(", FileType: ").append(this.fileType);
+        stringBuilder.append(", ParentDirectory: ").append(this.parentDirectory);
+        stringBuilder.append(", SystemName: ").append(this.systemName);
+        return stringBuilder.toString();
     }
 }

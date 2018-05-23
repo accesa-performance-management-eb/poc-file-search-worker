@@ -1,8 +1,6 @@
 package com.biroas.poc.file.search.api.model.file;
 
-import java.io.Serializable;
-
-public class FileType implements Serializable {
+public class FileType {
 
     private String extension;
     private boolean isImage;
@@ -57,5 +55,12 @@ public class FileType implements Serializable {
 
     public void setOther(boolean other) {
         isOther = other;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(" Extension: ").append(this.extension);
+        return stringBuilder.toString();
     }
 }

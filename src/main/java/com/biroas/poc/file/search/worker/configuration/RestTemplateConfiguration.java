@@ -1,4 +1,4 @@
-package com.biroas.poc.file.search.worker.service.index.client;
+package com.biroas.poc.file.search.worker.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

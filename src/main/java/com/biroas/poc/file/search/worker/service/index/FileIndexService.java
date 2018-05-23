@@ -4,7 +4,7 @@ import com.biroas.poc.file.search.api.model.file.File;
 import com.biroas.poc.file.search.api.model.file.FileAttributes;
 import com.biroas.poc.file.search.api.model.file.FileType;
 import com.biroas.poc.file.search.api.model.result.IndexResult;
-import com.biroas.poc.file.search.worker.jms.FileIndexSender;
+import com.biroas.poc.file.search.worker.jms.FileIndexRequestSender;
 import com.biroas.poc.file.search.worker.service.index.client.FileIndexRestClient;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +18,11 @@ import java.util.Date;
 public class FileIndexService {
 
     @Inject
-    FileIndexSender fileIndexSender;
+    FileIndexRequestSender fileIndexRequestSender;
     @Inject
     FileIndexRestClient fileIndexRestClient;
 
-    public IndexResult indexDirectory(String path, boolean recursive) throws IOException {
+    public IndexResult indexDirectory(String path, boolean recursive, boolean useActiveMQ) throws IOException {
         IndexResult indexResult = new IndexResult();
 
         java.io.File folder = new java.io.File(path);
@@ -41,7 +41,7 @@ public class FileIndexService {
             file.setDirectory(diskFile.isDirectory());
 
             if (recursive && file.isDirectory()) {
-                count += indexDirectory(file.getParentDirectory() + java.io.File.separator + file.getFileName(), true)
+                count += indexDirectory(file.getParentDirectory() + java.io.File.separator + file.getFileName(), true, useActiveMQ)
                         .getIndexedDocuments();
             }
 
@@ -50,7 +50,11 @@ public class FileIndexService {
                 file.setFileType(getFileType(diskFile));
             }
 
-            fileIndexRestClient.indexFile(file);
+            if(useActiveMQ) {
+                fileIndexRequestSender.sendFileIndexRequest(file);
+            }else {
+                fileIndexRestClient.indexFile(file);
+            }
             count++;
         }
 
