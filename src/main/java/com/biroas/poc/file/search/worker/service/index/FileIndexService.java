@@ -4,25 +4,33 @@ import com.biroas.poc.file.search.api.model.file.File;
 import com.biroas.poc.file.search.api.model.file.FileAttributes;
 import com.biroas.poc.file.search.api.model.file.FileType;
 import com.biroas.poc.file.search.api.model.result.IndexResult;
-import com.biroas.poc.file.search.worker.jms.FileIndexSender;
+import com.biroas.poc.file.search.worker.jms.FileIndexRequestSender;
 import com.biroas.poc.file.search.worker.service.index.client.FileIndexRestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
 import java.util.Date;
 
 @Service
 public class FileIndexService {
 
+    private final Logger logger = LoggerFactory.getLogger(FileIndexService.class);
     @Inject
-    FileIndexSender fileIndexSender;
+    FileIndexRequestSender fileIndexRequestSender;
     @Inject
     FileIndexRestClient fileIndexRestClient;
+    @Value("${file.index.extractContentFileTypes}")
+    String[] extractContentFileTypes;
 
-    public IndexResult indexDirectory(String path, boolean recursive) throws IOException {
+    public IndexResult indexDirectory(String path, boolean recursive, boolean useActiveMQ) throws IOException {
         IndexResult indexResult = new IndexResult();
 
         java.io.File folder = new java.io.File(path);
@@ -41,16 +49,24 @@ public class FileIndexService {
             file.setDirectory(diskFile.isDirectory());
 
             if (recursive && file.isDirectory()) {
-                count += indexDirectory(file.getParentDirectory() + java.io.File.separator + file.getFileName(), true)
+                count += indexDirectory(file.getParentDirectory() + java.io.File.separator + file.getFileName(), true, useActiveMQ)
                         .getIndexedDocuments();
             }
 
             if (!file.isDirectory()) {
                 file.setFileAttributes(getFileAttributes(diskFile));
                 file.setFileType(getFileType(diskFile));
+
+                if (Arrays.asList(extractContentFileTypes).contains(file.getFileType().getExtension())) {
+                    file.setFileContent(extractFileContent(diskFile.toPath()));
+                }
             }
 
-            fileIndexRestClient.indexFile(file);
+            if (useActiveMQ) {
+                fileIndexRequestSender.sendFileIndexRequest(file);
+            } else {
+                fileIndexRestClient.indexFile(file);
+            }
             count++;
         }
 
@@ -78,6 +94,22 @@ public class FileIndexService {
         String extension = com.google.common.io.Files.getFileExtension(file.getName());
         fileType.setExtension(extension);
         return fileType;
+    }
+
+    private String extractFileContent(Path path) {
+        try {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            Files.readAllLines(path)
+                    .stream()
+                    .forEach(line -> stringBuilder.append(line).append(" "));
+
+            return stringBuilder.toString();
+        } catch (Exception ex) {
+            logger.error("Exception when extracting file content: {}", path.getFileName());
+        }
+
+        return null;
     }
 
 

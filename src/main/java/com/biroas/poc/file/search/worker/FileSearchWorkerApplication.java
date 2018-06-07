@@ -40,57 +40,52 @@ public class FileSearchWorkerApplication implements CommandLineRunner {
 
             switch (option) {
                 case "1":
-                    indexDirectory(scanner);
+                    indexDirectory(scanner, false);
                     break;
                 case "2":
-                    deleteAllFiles(scanner);
+                    indexDirectory(scanner, true);
                     break;
                 case "3":
-                    getWorkerStatus(scanner);
+                    deleteAllFiles(scanner);
                     break;
                 case "4":
+                    getWorkerStatus(scanner);
+                    break;
+                case "5":
                     exit = true;
                     break;
                 default:
                     System.err.println("Invalid option");
             }
-
         }
-
-
     }
 
     private void printOptions() {
         System.out.println("---- Choose option ------");
         System.out.println("\n");
-        System.out.println("1. Index directory");
+        System.out.println("1. Index directory (using REST Client)");
         System.out.println("\n");
-        System.out.println("2. Delete all files");
+        System.out.println("2. Index directory (using ActiveMQ)");
         System.out.println("\n");
-        System.out.println("3. Get worker status");
+        System.out.println("3. Delete all files");
         System.out.println("\n");
-        System.out.println("4. Exit program");
+        System.out.println("4. Get worker status");
+        System.out.println("\n");
+        System.out.println("5. Exit program");
         System.out.println("\n");
         System.out.println("----**------");
 
 
     }
 
-    private void indexDirectory(Scanner scanner) {
+    private void indexDirectory(Scanner scanner, boolean useActiveMQ) {
 
         try {
             System.out.println("Enter directory path:");
-            String dir = scanner.nextLine();
-            if (new File(dir).exists()) {
-                Runnable runnable = () -> {
-                    try {
-                        fileIndexService.indexDirectory(dir, true);
-                    } catch (Exception ex) {
-                        System.err.println(ex.getMessage());
+            String directory = scanner.nextLine();
+            if (new File(directory).exists()) {
 
-                    }
-                };
-                executorService.execute(runnable);
+                startIndexingThread(directory, useActiveMQ);
 
             } else {
                 System.err.println("Invalid directory");
@@ -101,12 +96,25 @@ public class FileSearchWorkerApplication implements CommandLineRunner {
 
     }
 
+    private void startIndexingThread(String directory, boolean useActiveMQ) {
+        Runnable runnable = () -> {
+            try {
+                    fileIndexService.indexDirectory(directory, true, useActiveMQ);
+
+            } catch (Exception ex) {
+                System.err.println(ex.getMessage());
+
+            }
+        };
+        executorService.execute(runnable);
+    }
+
     private void deleteAllFiles(Scanner scanner) {
         try {
             System.out.println("Are you sure you want to delete all files?");
             String answer = scanner.nextLine();
 
-            if (answer.toLowerCase().equals("y") || answer.toLowerCase().equals("yes")) {
+            if (answer.equalsIgnoreCase("y") || answer.equalsIgnoreCase("yes")) {
                 fileIndexService.deleteAllFiles();
             }
         } catch (Exception ex) {

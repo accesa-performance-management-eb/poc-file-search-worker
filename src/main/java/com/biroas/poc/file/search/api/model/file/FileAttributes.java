@@ -1,9 +1,8 @@
 package com.biroas.poc.file.search.api.model.file;
 
-import java.io.Serializable;
 import java.util.Date;
 
-public class FileAttributes implements Serializable {
+public class FileAttributes {
 
     private long size;
     private Date creationDate;

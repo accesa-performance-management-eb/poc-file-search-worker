@@ -1,7 +1,10 @@
 activemq:
   broker.url: tcp://localhost:61616?jms.redeliveryPolicy.maximumRedeliveries=-1
+  queue.name: file-index
 file-search-api:
   service:
     url: http://localhost:8080/api/rest/v1/file/index
 server:
   port: 9080
+file:
+  index.extractContentFileTypes: txt,log
