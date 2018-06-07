@@ -6,3 +6,5 @@ file-search-api:
     url: http://localhost:8080/api/rest/v1/file/index
 server:
   port: 9080
+file:
+  index.extractContentFileTypes: txt,log

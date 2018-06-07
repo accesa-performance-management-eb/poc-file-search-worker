@@ -9,6 +9,7 @@ public class File {
     private FileAttributes fileAttributes = new FileAttributes();
     private FileType fileType = new FileType();
     private String systemName;
+    private String fileContent;
 
     public String getId() {
         return id;
@@ -64,6 +65,14 @@ public class File {
 
     public void setSystemName(String systemName) {
         this.systemName = systemName;
+    }
+
+    public String getFileContent() {
+        return fileContent;
+    }
+
+    public void setFileContent(String fileContent) {
+        this.fileContent = fileContent;
     }
 
     @Override
