@@ -1,6 +1,10 @@
 activemq:
   broker.url: tcp://localhost:61616?jms.redeliveryPolicy.maximumRedeliveries=-1
   queue.name: file-index
+  queue.download.name: file-download
+  listener:
+      concurrency: 3-10
+      session.transacted: true
 file-search-api:
   service:
     url: http://localhost:8080/api/rest/v1/file/index
@@ -8,3 +12,11 @@ server:
   port: 9080
 file:
   index.extractContentFileTypes: txt,log
+spring.mail:
+  host:
+  username:
+  password:
+  port: 587
+mail:
+  from:
+  to:

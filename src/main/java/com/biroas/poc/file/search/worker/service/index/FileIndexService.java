@@ -47,6 +47,7 @@ public class FileIndexService {
             file.setFileName(diskFile.getName());
             file.setParentDirectory(diskFile.getParentFile().getAbsolutePath());
             file.setDirectory(diskFile.isDirectory());
+            file.setId(getId(file));
 
             if (recursive && file.isDirectory()) {
                 count += indexDirectory(file.getParentDirectory() + java.io.File.separator + file.getFileName(), true, useActiveMQ)
@@ -112,5 +113,9 @@ public class FileIndexService {
         return null;
     }
 
-
+    private String getId(File file) { //TODO consider to replace with checksum, study best way to generate id and avoid collision
+        int hashCode = (file.getSystemName() + file.getParentDirectory() + file.getFileName())
+                .replaceAll("[^A-Za-z0-9]", "").toLowerCase().hashCode();
+        return String.valueOf(hashCode);
+    }
 }
